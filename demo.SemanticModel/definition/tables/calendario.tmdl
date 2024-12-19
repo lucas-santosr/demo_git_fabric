@@ -1,0 +1,87 @@
+table calendario
+	lineageTag: 6da0d994-9519-4968-b637-61c2873f9634
+
+	column Data
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: d91106db-931c-4fe4-9c79-afa1506f6e3b
+		summarizeBy: none
+		sourceColumn: Data
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column Ano
+		dataType: int64
+		formatString: 0
+		lineageTag: 27795ecc-b6af-4162-9142-68bbc33d0537
+		summarizeBy: none
+		sourceColumn: Ano
+
+		annotation SummarizationSetBy = Automatic
+
+	column MesAno
+		dataType: string
+		lineageTag: c83fbf23-bc5f-4599-a39e-7eb23327be18
+		summarizeBy: none
+		sourceColumn: MesAno
+		sortByColumn: MesInicio
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column MesInicio
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 16f65676-d8ec-41bd-81a4-c045a914bede
+		summarizeBy: none
+		sourceColumn: MesInicio
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition calendario = m
+		mode: import
+		queryGroup: Dimensões
+		source = ```
+				let
+				    dataInicial = data_inicial, 
+				    dataFinal = data_final, 
+				    
+				    datas = List.Dates(
+				        dataInicial, 
+				        Duration.Days(dataFinal-dataInicial) + 1, 
+				        #duration(1, 0, 0, 0)
+				    ),
+				
+				    calendario = #table(
+				        type table[
+				            Data = date,
+				            Ano = Int64.Type,
+				            MesAno = text,
+				            MesInicio = date
+				        ],
+				        List.Transform(
+				            datas,
+				            each {
+				                _,
+				                Date.Year(_),
+				                Date.ToText(_, [Format="MMM/yy", Culture="pt-BR"]),
+				                Date.StartOfMonth(_)
+				            }
+				        )
+				    )
+				
+				in
+				    calendario
+				```
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

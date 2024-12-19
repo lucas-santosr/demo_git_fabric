@@ -1,0 +1,79 @@
+table transacoes
+	lineageTag: 0ab4cadd-a46d-4ccb-85cb-b0e1585e9755
+
+	measure 'Valor Total' = SUM(transacoes[Total])
+		displayFolder: Medidas
+		lineageTag: a692ff2c-6f97-4049-ab16-1e32e24020dd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ID
+		dataType: double
+		displayFolder: Colunas
+		lineageTag: 9742582d-a7e9-4f0a-835f-adda402ed997
+		summarizeBy: count
+		sourceColumn: ID
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Data
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		displayFolder: Colunas
+		lineageTag: b553aa05-11d0-4505-b106-134d6c1ffdce
+		summarizeBy: none
+		sourceColumn: Data
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column Total
+		dataType: double
+		displayFolder: Colunas
+		lineageTag: 3e46a60e-d02a-4df4-a4f8-a495710c11bd
+		summarizeBy: sum
+		sourceColumn: Total
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Moeda
+		dataType: string
+		displayFolder: Colunas
+		lineageTag: f3475251-27ff-4c73-a2ad-92bfc53a7743
+		summarizeBy: none
+		sourceColumn: Moeda
+
+		annotation SummarizationSetBy = Automatic
+
+	partition transacoes = m
+		mode: import
+		queryGroup: Fatos
+		source = ```
+				let
+				    source = Excel.Workbook(
+				        File.Contents(base_transacoes), 
+				        true, 
+				        null
+				    ),
+				    
+				    transacoes_Table = source{[Item="transacoes",Kind="Table"]}[Data],
+				    
+				    datesRestricted = Table.SelectRows(
+				        transacoes_Table, 
+				        each [Data] >= data_inicial and [Data] <= data_final
+				    )
+				in
+				    datesRestricted
+				```
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+
